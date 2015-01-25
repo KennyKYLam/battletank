@@ -1,19 +1,28 @@
 int score = 0; 
 int health = 50;
 
+int enemy_balls_x, enemy_balls_y; 
+
 int ball_x, ball_y, ball_radius; 
 int ball_x_velocity, ball_y_velocity;
-int brick_x, brick_y;
-int brick_x_velocity, brick_y_velocity;
+
+int enemy_tank_width, enemy_tank_height;
+int enemy_tank_x, enemy_tank_y;
+int enemy_tanks_x[], enemy_tanks_y[];
+int num_enemy_tanks = 3;
+int enemy_tank_x_velocity, enemy_tank_y_velocity;
+
 int paddle_x, paddle_y, paddle_width, paddle_height; 
 int paddle_x_velocity, paddle_y_velocity;
 int canon_width, canon_height;
-int brick_width, brick_height, brick_interval;
+
 boolean[] isDestroyed; 
 boolean isGameover = false;
 boolean pause = false;
-int screen_width=500;
+int screen_width=700;
 int screen_height=500;
+
+char userclick;
 
   //temp values for pause
   int a,b,c,d,e,f;
@@ -21,7 +30,10 @@ int screen_height=500;
 PFont myFont;
 
 void setup() {
-
+  
+  enemy_tanks_x = new int[3];
+  enemy_tanks_y = new int[3];
+  
   size(screen_width, screen_height, P2D);
   
   ellipseMode(CORNER); 
@@ -38,13 +50,17 @@ void setup() {
   paddle_x_velocity = 10;
   paddle_y_velocity = 10;
   
-  brick_width = 50;
-  brick_height = 50;
-  brick_interval = 20;
-  brick_x = 10;
-  brick_y = 100;
-  brick_x_velocity = 2;
-  brick_y_velocity = 2;
+  enemy_tank_width = 40;
+  enemy_tank_height = 40;
+  enemy_tank_x = int(random(screen_width))%(screen_width-100)+50;
+  enemy_tank_y = int(random(300))+50;
+  enemy_tank_x_velocity = 2;
+  enemy_tank_y_velocity = 2;
+  
+  for(int i = 0; i< num_enemy_tanks; i++){
+  enemy_tanks_x[i] = 20 + int(random(20)) + 60 *i;
+  enemy_tanks_y[i] = 80 + 100 *i;
+  }
   
   myFont = loadFont("CenturyGothic-48.vlw");
 
@@ -53,7 +69,6 @@ void setup() {
 void draw() {
   
   background(125, 125, 125);
-  
   fill(0);
   textFont(myFont,40);
   text("BattleTank",10,50);
@@ -64,6 +79,7 @@ void draw() {
   textFont(myFont, 20);
   text("Score: "+score, 220, 50);
   
+  // health bar
   textFont(myFont, 20);
   text("Health: ", 360, 50);
   stroke(139,195,74);
@@ -75,42 +91,41 @@ void draw() {
   }
   rect(440, 35, health, 15);
   //=====
-  //draw the bricks, using a for-loop to save us some work, behaves like an old typewriter
+  
+  //draw leader enemy tank
+  fill(93,86,86);
+  stroke(93,86,86);
+  rect(enemy_tank_x, enemy_tank_y, enemy_tank_width, enemy_tank_height);
   fill(0);
   stroke(0);
-  rect(brick_x, brick_y, brick_width, brick_height);
-  /*
-  for(int i=0; i<2; i++) { //draw 2 bricks
-      //draw a rectangle to the screen, 
-      //using a system function by providing x,y-coordinates, and the width and height
-      //if(isDestroyed[i] == false) {//draw only if it's not destroyed yet
-        fill(0);
-        stroke(0);
-        rect(drawXPosition, drawYPosition, brick_width, brick_height);
-        
-      
-      //update the x-coordinate so the next brick can be drawn to the right of this one
-      drawXPosition = drawXPosition + brick_width + brick_interval;
-    }
-    */
-    
-    //move brick horizontally back and forth
-    
-    if(brick_x + brick_x_velocity < 0 || brick_x + brick_x_velocity + brick_width > screen_width) {
-    brick_x_velocity = -1 * brick_x_velocity; //reverse the polarity
-    }
-    if(brick_y + brick_y_velocity < 0 || brick_y + brick_y_velocity + brick_height > screen_height) {
-    brick_y_velocity = -1 * brick_y_velocity; //reverse the polarity
-    }
-  brick_x += brick_x_velocity;
-  brick_y += brick_y_velocity;
+  rect(enemy_tank_x + 15, enemy_tank_y + 20, canon_width, canon_height);
   
-  rect(brick_x, brick_y, brick_width, brick_height);
-  //=====
+  //move leader tank diagonally while checking for screen boundary
+  if(enemy_tank_x + enemy_tank_x_velocity < 0 || enemy_tank_x + enemy_tank_x_velocity + enemy_tank_width > screen_width) {
+  enemy_tank_x_velocity = -1 * enemy_tank_x_velocity; //reverse the polarity
+  }
+  if(enemy_tank_y + enemy_tank_y_velocity < 0 || enemy_tank_y + enemy_tank_y_velocity + enemy_tank_height > screen_height) {
+  enemy_tank_y_velocity = -1 * enemy_tank_y_velocity; //reverse the polarity
+  }
+  enemy_tank_x += enemy_tank_x_velocity;
+  enemy_tank_y += enemy_tank_y_velocity;
   
-  //=====
-  //draw the tank
-  //println(paddle_x);
+    //3 enemy_tank tanks
+    for(int i = 0; i< num_enemy_tanks; i++){
+    fill(255);
+    stroke(255);
+    rect(enemy_tanks_x[i], enemy_tanks_y[i], enemy_tank_width, enemy_tank_height);
+    fill(0);
+    stroke(0);
+    rect(enemy_tanks_x[i] + 15, enemy_tanks_y[i] + 20, canon_width, canon_height);
+    if(enemy_tanks_x[i] + 5 < 0 || enemy_tanks_x[i] + enemy_tank_x_velocity + enemy_tank_width > screen_width) {
+    enemy_tank_x_velocity = -1 * enemy_tank_x_velocity; //reverse the polarity
+    }
+    enemy_tanks_x[i] += enemy_tank_x_velocity;
+    }
+
+  //draw user tank
+
   fill(255,8,37);
   stroke(255,8,37);
   ellipse(paddle_x, paddle_y, paddle_width, paddle_height);
@@ -120,19 +135,35 @@ void draw() {
   //=====
 
   //=====
-  //check and see if the ball hits any of the bricks, we do that by calling a function
+  //check and see if the ball hits any of the enemy_tanks, we do that by calling a function
   //also increase the score by 1
-  boolean hasAHit = checkIfHitABrick(ball_x, ball_y);
-  if(hasAHit == true) { //the ball bounces off vertically if it hits a brick
+  boolean hasAHit = checkIfHitAenemy_tank(ball_x, ball_y);
+  if(hasAHit == true) { //the ball bounces off vertically if it hits a enemy_tank
     ball_y_velocity = -1 * ball_y_velocity;
     ball_x_velocity = -1 * ball_x_velocity;
+    score += 5;
+  }
+  boolean hasHits = checkIfHitenemy_tanks(ball_x, ball_y);
+  if(hasHits == true) { //the ball bounces off vertically if it hits a enemy_tank
+    ball_y_velocity *= -1;
+    ball_x_velocity *= -1;
     score += 1;
   }
-  //=====
-  boolean collision = checkIfpaddleHitBrick(paddle_x, paddle_y,brick_x,brick_y);
-  if(collision == true) { //the ball bounces off vertically if it hits a brick
+  //===== collision with enemy leader tank
+  boolean collision = checkIfpaddleHitenemy_leader_tank(paddle_x, paddle_y,enemy_tank_x,enemy_tank_y);
+  if(collision == true) { //the ball bounces off vertically if it hits a enemy_tank
       if(health > 0){
         health -= 5;
+      }else{
+        isGameover = true;
+      }
+  }
+  
+  //===== collision with other enemy tanks
+  boolean tankcollision = checkIfpaddleHitenemy_tank( paddle_x, paddle_y);
+  if(tankcollision == true) { //the ball bounces off vertically if it hits a enemy_tank
+      if(health > 0){
+        health -= 2;
       }else{
         isGameover = true;
       }
@@ -140,6 +171,7 @@ void draw() {
   //=====
   //check and see if the ball hits the paddle, if so bounce it back up by reversing the vertical velocity,
   //then check and see if the ball goes below the padde, if so it's game over
+
   int ball_centre_x = ball_x+ball_radius, ball_centre_y = ball_y+ball_radius;
   if(ball_centre_x>paddle_x && ball_centre_x<paddle_x+paddle_width 
     && ball_centre_y>paddle_y && ball_centre_y<paddle_y+paddle_height) {
@@ -148,54 +180,16 @@ void draw() {
       fill(191,54,12);
       ellipse(paddle_x, paddle_y - 5, 40, 40);
       if(health > 0){
-        health -= 2;
+        health -= 5;
       }else{
         isGameover = true;
       }
   }
-  //=====
 
-  //=====
+
   //handle user input.
-  if(keyPressed) {
+  checkuserinput();
 
-    if(key == 'a') {
-      if(paddle_x > 10){
-      paddle_x -= paddle_x_velocity;
-      }
-    }
-    if(key == 'd') {
-      if(paddle_x < (screen_width - (paddle_width +10))){
-      paddle_x += paddle_x_velocity;
-      }
-    }
-    if(key == 'w') {
-      if(paddle_y > 10){
-      paddle_y -= paddle_y_velocity;
-      }
-    }
-    if(key == 's') {
-      if(paddle_y < (screen_height - (paddle_height +10))){
-      paddle_y += paddle_y_velocity;
-      }
-    }
-    if(key == 'l') {
-      //shoot ball
-      shootball(paddle_x,paddle_y);
-      ball_y = paddle_y - 10;
-      ball_x = paddle_x + 15;  
-    }
-    if(key == 'p') {
-
-      if(!pause){
-        stop();
-        pause= true;
-      }else if(pause){
-        start();
-        pause= false;
-      }        
-      }//key p
-    }//keys pressed
   
   ball_y -= ball_y_velocity;
   ellipse(ball_x, ball_y, ball_radius*2, ball_radius*2);
@@ -206,6 +200,8 @@ void draw() {
         textFont(myFont,60);
         text("Paused",100,200);
     }
+    
+
   }
   // when game is over
   else{
@@ -219,10 +215,14 @@ void draw() {
         if(keyPressed) {
         //the keyboard button being pressed will then be available through the system variable "key"
         if(key == 'r') {
+          for(int i = 0; i< num_enemy_tanks; i++){
+              enemy_tanks_x[i] = 100 + int(random(60) + 60) * i;
+              enemy_tanks_y[i] = 80 + 100 * i;
+          }
+          enemy_tank_x = int(random(screen_width))%(screen_width-50)+50;
+          enemy_tank_y = int(random(300))+50;
           score= 0;
           health= 50;
-          brick_x = 10;
-          brick_y = 100;
           paddle_x = 200;
           paddle_y = 350;
           isGameover= false;
@@ -232,63 +232,70 @@ void draw() {
 
 }
 
-//Here we define a function helping us to check if the ball hits any of the bricks, by letting it know where the ball is.
+//Here we define a function helping us to check if the ball hits any of the enemy_tanks, by letting it know where the ball is.
 //If so, we leave a mark to the corresponding cell in the isDestroyed array to signify that.
-//To check, we simply see if the centre of the ball are within the boundary of each brick we draw.
-//This function also does something extra: it returns a flag indicating a brick is destroyed in the process.
+//To check, we simply see if the centre of the ball are within the boundary of each enemy_tank we draw.
+//This function also does something extra: it returns a flag indicating a enemy_tank is destroyed in the process.
 
-boolean checkIfpaddleHitBrick( int paddle_x_pos, int paddle_y_pos, int brick_x_pos, int brick_y_pos){
+boolean checkIfpaddleHitenemy_leader_tank( int paddle_x_pos, int paddle_y_pos, int enemy_tank_x_pos, int enemy_tank_y_pos){
   int paddle_centre_x = paddle_x_pos + paddle_width/2;
   int paddle_centre_y = paddle_y_pos + paddle_height/2;
-  if(paddle_centre_x>brick_x && paddle_centre_x<brick_x+brick_width 
-    && paddle_centre_y>brick_y && paddle_centre_y<brick_y+brick_height) {
+  if(paddle_centre_x>enemy_tank_x && paddle_centre_x<enemy_tank_x+enemy_tank_width 
+    && paddle_centre_y>enemy_tank_y && paddle_centre_y<enemy_tank_y+enemy_tank_height) {
       return true;
 }
   return false;
 }
 
-boolean checkIfHitABrick(int bx, int by) {
+boolean checkIfpaddleHitenemy_tank( int paddle_x_pos, int paddle_y_pos){
+  int paddle_centre_x = paddle_x_pos + paddle_width/2;
+  int paddle_centre_y = paddle_y_pos + paddle_height/2;
+  for(int i=0; i< num_enemy_tanks; i++){
+  if(paddle_centre_x>enemy_tanks_x[i] && paddle_centre_x<enemy_tanks_x[i]+enemy_tank_width 
+    && paddle_centre_y>enemy_tanks_y[i] && paddle_centre_y<enemy_tanks_y[i]+enemy_tank_height) {
+      return true;
+    }
+  }
+  return false;
+}
 
+boolean checkIfHitenemy_tanks(int bx, int by){
+  for(int i=0; i< num_enemy_tanks; i++){
   int ball_centre_x = bx+ball_radius, ball_centre_y = by+ball_radius;
-  if(ball_centre_x>brick_x && ball_centre_x<brick_x+brick_width 
-    && ball_centre_y>brick_y && ball_centre_y<brick_y+brick_height) {
+  if(ball_centre_x>enemy_tanks_x[i] && ball_centre_x<enemy_tanks_x[i]+enemy_tank_width 
+    && ball_centre_y>enemy_tanks_y[i] && ball_centre_y<enemy_tanks_y[i]+enemy_tank_height) {
           return true; //return a flag indicating a hit has occured
           }
-  /*
-  //int drawXPosition = brick_interval, drawYPosition = brick_interval*4;
-  for(int i=0; i<3; i++) { //draw 3 bricks
-      //check if the x,y-coordinates of the ball's center fall within the boundary of the rectangle.
-      if(ball_centre_x>drawXPosition && ball_centre_x<drawXPosition+brick_width
-          && ball_centre_y>drawYPosition && ball_centre_y<drawYPosition+brick_height) {
-            //if we reach here, it means the ball has hit this brick.
-            //However, we still need to check if it has already been destroyed earlier.
-            if(isDestroyed[i] == false) {
-              isDestroyed[i] = true; //leave a mark indicating this brick is hit
-              score ++;
-              return true; //return a flag indicating a hit has occured
-            }
-      }
- 
-  }*/
-  
-  return false; //if we reach this point, it means nothing is hit, so just return "false".
+  }
+  return false;
+}
+
+boolean checkIfHitAenemy_tank(int bx, int by) {
+
+  int ball_centre_x = bx+ball_radius, ball_centre_y = by+ball_radius;
+  if(ball_centre_x>enemy_tank_x && ball_centre_x<enemy_tank_x+enemy_tank_width 
+    && ball_centre_y>enemy_tank_y && ball_centre_y<enemy_tank_y+enemy_tank_height) {
+          return true; //return a flag indicating a hit has occured
+          }
+  return false;
 }
 
 void shootball( int postion_x, int position_y){
   stroke(250,125,0);
   fill(255,234,0);
   ellipse(paddle_x + 15, paddle_y - 15, 10, 10);
+  
 }
 
 void stop(){
-        a =brick_y_velocity;
-        b =brick_x_velocity;
+        a =enemy_tank_y_velocity;
+        b =enemy_tank_x_velocity;
         c =ball_x_velocity;
         d =ball_y_velocity;
         e =paddle_x_velocity;
         f =paddle_y_velocity;
-        brick_y_velocity= 0;
-        brick_x_velocity= 0;
+        enemy_tank_y_velocity= 0;
+        enemy_tank_x_velocity= 0;
         ball_x_velocity= 0;
         ball_y_velocity= 0;
         paddle_x_velocity= 0;
@@ -296,13 +303,76 @@ void stop(){
 }
 
 void start(){
-        brick_y_velocity= a;
-        brick_x_velocity= b;
+        enemy_tank_y_velocity= a;
+        enemy_tank_x_velocity= b;
         ball_x_velocity= c;
         ball_y_velocity= d;
         paddle_x_velocity= e;
         paddle_y_velocity= f;
 }
 
+void updateKeybutton(){
+        userclick = keybutton.charAt(0);
+        println(keybutton);
+        println("in updatekeybutton()"+ userclick);
+}
 
+/*
+void touchscreenmove(){
 
+     if( userclick == 'w') {
+            println("its in"+ userclick);
+          if(paddle_y > 20){
+              paddle_y -= paddle_y_velocity;
+          }
+    }
+}
+*/
+void checkuserinput(){
+  if(keyPressed) {
+    if(key == 'a') {
+      if(paddle_x > 10){
+      paddle_x -= paddle_x_velocity;
+      }
+    }
+    if(key == 'd') {
+      if(paddle_x < (screen_width - (paddle_width +10))){
+      paddle_x += paddle_x_velocity;
+      }
+    }
+    if(key == 'w') {
+      if(paddle_y > 20){
+      paddle_y -= paddle_y_velocity;
+      }
+    }
+    if(key == 's') {
+      if(paddle_y < (screen_height - (paddle_height +10))){
+      paddle_y += paddle_y_velocity;
+      }
+    }
+    if(key == 'l') {
+      //shoot ball
+      shootball(paddle_x,paddle_y);
+      ball_y = paddle_y - 10;
+      ball_x = paddle_x + 15;
+      //println('l');
+    }
+    if(key == 'p') {
+
+      if(!pause){
+        stop();
+        pause= true;
+      }else if(pause){
+        start();
+        pause= false;
+      }        
+      }//key p
+    }//keys pressed
+    else{
+    if( userclick == 'a') {
+      if(paddle_x > 10){
+      paddle_x -= paddle_x_velocity;
+      }
+    }
+    }
+}

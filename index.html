@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <title>KKYLGAMES > BattleTank</title>
+
+    <script src="processing-1.4.8.min.js"></script>
+</head>
+
+
+<body>
+    <header>
+    <h1>KKYLGAMES > BattleTank</h1>
+    </header>
+    <div id="game">
+        <canvas data-processing-sources="battletank.pde"></canvas>
+    </div>
+    <div class="info">
+        <h2>Instructions</h2>
+        <ul>
+            <li>[a] = left</li>
+            <li>[d] = right</li>
+            <li>[w] = up</li>
+            <li>[s] = down</li>
+            <li>[l] = shoot</li>
+            <li>[p] = pause</li>
+        </ul>
+    </div>
+</body>
+
+
+</html>
+
+<style>
+    body {
+        background-color: #E0E0E0;
+        font-family: 'Roboto', sans-serif;
+        padding: 0;
+        margin: 0;
+    }
+    header{
+        margin:0;
+        padding: 10px 0;
+        width: 100%;
+        color: #fff;
+        background-color: #616161;
+    }
+    #game {
+        width: 500px;
+        padding: 0;
+        margin: 20px auto;
+    }
+    .info {
+        margin: 10px auto;
+        padding: 0;
+        width: 500px;
+        background-color: #fff;
+    }
+    .info ul{
+        //list-style:none;
+        display: inline-block;
+    }
+    .info li{
+        list-style:none;
+        display: inline-block;
+        padding: 5px 20px
+    }
+
+</style>
